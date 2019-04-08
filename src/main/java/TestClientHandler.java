@@ -7,6 +7,8 @@ import io.netty.util.ReferenceCountUtil;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static com.esotericsoftware.minlog.Log.info;
+
 public class TestClientHandler extends ChannelInboundHandlerAdapter {
 
     public static final int BUFFER_SIZE = 32768;
@@ -14,14 +16,14 @@ public class TestClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("Connected to server!");
+        info("Connected to server!");
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf buf = (ByteBuf) msg;
         try {
-            System.out.println(String.format("Received %s bytes", buf.readableBytes()));
+            info(String.format("Received %s bytes", buf.readableBytes()));
             input.setBuffer(buf.nioBuffer());
             ////
 
@@ -30,8 +32,7 @@ public class TestClientHandler extends ChannelInboundHandlerAdapter {
                 troq[i] = input.readInt(true);
             }
 
-            System.out.println("Content: " + Arrays.toString(troq));
-
+            info("Content: " + Arrays.toString(troq));
 
         } catch (Throwable e){
             e.printStackTrace();
@@ -41,5 +42,7 @@ public class TestClientHandler extends ChannelInboundHandlerAdapter {
                 ReferenceCountUtil.release(buf);
             }
         }
+
+        ctx.writeAndFlush(ctx.alloc().buffer().writeInt(1));
     }
 }

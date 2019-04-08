@@ -1,3 +1,4 @@
+import com.esotericsoftware.minlog.Log;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -9,6 +10,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class TestClient {
     public static void main(String[] args) throws Exception {
+        Log.setLogger(new MyLogger());
+
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
