@@ -25,9 +25,6 @@ public class TestServerHandler extends ChannelInboundHandlerAdapter {
         info("Client connected. Start heavy send thread!");
         new Thread(() -> {
             while (true){
-                if (!pingPongLatch.isEmpty())
-                    continue;
-
                 ByteBufferOutput output = getClearedOutput();
                 output.writeInt(1, true);
                 output.writeInt(2, true);
@@ -37,8 +34,8 @@ public class TestServerHandler extends ChannelInboundHandlerAdapter {
 
                 ByteBuf byteBuf = Unpooled.wrappedBuffer((ByteBuffer) output.getByteBuffer().flip());
                 ctx.channel().writeAndFlush(byteBuf);
-                pingPongLatch.incr();
                 info(String.format("Sent %s bytes", byteBuf.readableBytes()));
+                pingPongLatch.waitAndIncr();
             }
         }).start();
     }
@@ -46,6 +43,5 @@ public class TestServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         pingPongLatch.decr();
-        info("received");
     }
 }
