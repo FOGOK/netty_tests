@@ -5,43 +5,36 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 import static com.esotericsoftware.minlog.Log.info;
 
 public class TestServerHandler extends ChannelInboundHandlerAdapter {
 
-    public static final int BUFFER_SIZE = 32768;
+    private static final int BUFFER_SIZE = 32768;
     private final ByteBufferOutput output = new ByteBufferOutput(ByteBuffer.allocateDirect(BUFFER_SIZE));
 
-    public ByteBufferOutput getClearedOutput() {
+    private ByteBufferOutput getClearedOutput() {
         output.clear();
         return output;
     }
 
-    private PingPongLatch pingPongLatch = new PingPongLatch();
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         info("Client connected. Start heavy send thread!");
-        new Thread(() -> {
-            while (true){
-                ByteBufferOutput output = getClearedOutput();
-                output.writeInt(1, true);
-                output.writeInt(2, true);
-                output.writeInt(3, true);
-                output.writeInt(4, true);
-                output.writeInt(5, true);
 
-                ByteBuf byteBuf = Unpooled.wrappedBuffer((ByteBuffer) output.getByteBuffer().flip());
-                ctx.channel().writeAndFlush(byteBuf);
-                info(String.format("Sent %s bytes", byteBuf.readableBytes()));
-                pingPongLatch.waitAndIncr();
-            }
-        }).start();
-    }
+        for (int i = 0; i < 10; i++) {
+            ByteBufferOutput output = getClearedOutput();
+            ByteBufSenderHelper.reservePlaceToHeader(output);
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        pingPongLatch.decr();
+            for (int q = 0; q < 10000; q++)
+                output.writeInt(q, true);
+
+            ByteBufSenderHelper.setHeader(output);
+
+            ByteBuf byteBuf = Unpooled.wrappedBuffer((ByteBuffer) output.getByteBuffer().flip());
+            ctx.channel().writeAndFlush(byteBuf);
+            info("Sent!");
+        }
     }
 }

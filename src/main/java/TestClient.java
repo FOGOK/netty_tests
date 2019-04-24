@@ -1,16 +1,16 @@
 import com.esotericsoftware.minlog.Log;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import static com.esotericsoftware.minlog.Log.LEVEL_TRACE;
+
 public class TestClient {
     public static void main(String[] args) throws Exception {
         Log.setLogger(new MyLogger());
+        Log.set(LEVEL_TRACE);
 
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -22,6 +22,7 @@ public class TestClient {
             b.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
+//                    ch.config().setRecvByteBufAllocator(new FixedRecvByteBufAllocator(262144)); //set  buf size here
                     ch.pipeline().addLast(new TestClientHandler());
                 }
             });

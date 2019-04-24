@@ -12,7 +12,7 @@ public class MyLogger extends Log.Logger{
     public void log(int level, String category, String message, Throwable ex) {
         StringBuilder builder = new StringBuilder(256);
 
-        long time = System.currentTimeMillis() - firstLogTime;
+        long time = System.currentTimeMillis();
         long minutes = time / (1000 * 60);
         long seconds = time / (1000) % 60;
         long milliseconds = time % 1000;
