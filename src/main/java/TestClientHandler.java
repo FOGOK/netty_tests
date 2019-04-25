@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 import static com.esotericsoftware.minlog.Log.info;
 
-public class TestClientHandler extends SimpleChannelInboundHandler<ByteBuf> implements ReadPacketCallback{
+public class TestClientHandler extends SimpleChannelInboundHandler<ByteBuf> implements ReadPacketCallback {
 
     public static final int BUFFER_SIZE = 32768;
     private final ByteBufferInput input = new ByteBufferInput(ByteBuffer.allocate(BUFFER_SIZE));
@@ -30,7 +30,7 @@ public class TestClientHandler extends SimpleChannelInboundHandler<ByteBuf> impl
         byteBufDelemiter.read(buf);
     }
 
-
+    int readPackets;
     @Override
     public void readPacket(ByteBuf buf) throws Throwable {
         try {
@@ -45,12 +45,20 @@ public class TestClientHandler extends SimpleChannelInboundHandler<ByteBuf> impl
                 i++;
             }
 
-            info("Content: " + Arrays.toString(troq));
+            info("Content: " + Arrays.toString(Arrays.copyOf(troq, i)));
 
         } catch (Throwable e){
             e.printStackTrace();
         } finally {
             input.release();
         }
+        readPackets++;
+        info("readPackets: " + readPackets);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        ctx.close();
+        cause.printStackTrace();
     }
 }

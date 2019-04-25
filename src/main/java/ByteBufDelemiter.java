@@ -5,7 +5,7 @@ import io.netty.buffer.Unpooled;
 import static com.esotericsoftware.minlog.Log.*;
 
 public class ByteBufDelemiter {
-    private final boolean isDebug = false;
+    private final boolean isDebug = true;
 
     private boolean expectedHeader = true;
     private ByteBuf headerBuf;
@@ -27,7 +27,10 @@ public class ByteBufDelemiter {
             if (expectedHeader) {
                 if (isDebug) debug("Received Header Part");
                 headerBuf.writeBytes(buf, Math.min(buf.capacity(), headerSize - headerBuf.writerIndex()));
-                if (headerBuf.readableBytes() >= headerSize) {
+                if (headerBuf.readableBytes() > headerSize) {
+                    error("headerBuf.readableBytes() > headerSize");
+                }
+                if (headerBuf.readableBytes() == headerSize) {
 
                     contentSize = headerBuf.readInt();
                     headerBuf.clear();

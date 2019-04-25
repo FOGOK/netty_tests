@@ -23,18 +23,21 @@ public class TestServerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         info("Client connected. Start heavy send thread!");
 
-        for (int i = 0; i < 10; i++) {
-            ByteBufferOutput output = getClearedOutput();
-            ByteBufSenderHelper.reservePlaceToHeader(output);
+        new Thread(() -> {
+            for (int i = 0; i < 10000; i++) {
+                ByteBufferOutput output = getClearedOutput();
+                ByteBufSenderHelper.reservePlaceToHeader(output);
 
-            for (int q = 0; q < 10000; q++)
-                output.writeInt(q, true);
+                int t = new Random().nextInt(100) + 10;
+                for (int q = 0; q < ( i + 1); q++)
+                    output.writeInt(q, true);
 
-            ByteBufSenderHelper.setHeader(output);
+                ByteBufSenderHelper.setHeader(output);
 
-            ByteBuf byteBuf = Unpooled.wrappedBuffer((ByteBuffer) output.getByteBuffer().flip());
-            ctx.channel().writeAndFlush(byteBuf);
-            info("Sent!");
-        }
+                ByteBuf byteBuf = Unpooled.wrappedBuffer((ByteBuffer) output.getByteBuffer().flip());
+                ctx.writeAndFlush(byteBuf).syncUninterruptibly();
+                info("Sent! " + (i  + 1));
+            }
+        }).start();
     }
 }
